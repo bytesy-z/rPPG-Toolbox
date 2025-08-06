@@ -76,7 +76,7 @@ def _compute_macc(pred_signal, gt_signal):
     return macc
 
 def _calculate_SNR(pred_ppg_signal, hr_label, fs=30, low_pass=0.6, high_pass=3.3):
-    """Calculate SNR as the ratio of the area under the curve of the frequency spectrum around the first and second harmonics 
+    """Calculate SNR as the ratio of the area under the curve of the frequency spectrum around the first and second harmonics
         of the ground truth HR frequency to the area under the curve of the remainder of the frequency spectrum, from 0.6 Hz
         to 3.3 Hz. 
 
@@ -100,9 +100,10 @@ def _calculate_SNR(pred_ppg_signal, hr_label, fs=30, low_pass=0.6, high_pass=3.3
     second_harmonic_freq = 2 * first_harmonic_freq
     deviation = 6 / 60  # 6 beats/min converted to Hz (1 Hz = 60 beats/min)
 
-    # Calculate FFT
+    # Calculate FFT with higher resolution (more zero-padding)
     pred_ppg_signal = np.expand_dims(pred_ppg_signal, 0)
     N = _next_power_of_2(pred_ppg_signal.shape[1])
+    N = max(N, 8192)  # Force minimum FFT size for better frequency resolution
     f_ppg, pxx_ppg = scipy.signal.periodogram(pred_ppg_signal, fs=fs, nfft=N, detrend=False)
 
     # Calculate the indices corresponding to the frequency ranges

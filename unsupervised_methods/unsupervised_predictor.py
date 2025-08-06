@@ -1,5 +1,11 @@
 """Unsupervised learning methods including POS, GREEN, CHROME, ICA, LGI and PBV."""
 import numpy as np
+import pickle
+import os
+import torch
+import sys
+# ensure parent dir in path for evaluation imports
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from evaluation.post_process import *
 from unsupervised_methods.methods.CHROME_DEHAAN import *
 from unsupervised_methods.methods.GREEN import *
@@ -22,12 +28,21 @@ def unsupervised_predict(config, data_loader, method_name):
     gt_hr_fft_all = []
     SNR_all = []
     MACC_all = []
+    # collect per-trial predicted BVP and labels using supervised method structure
+    predictions = {}
+    labels = {}
     sbar = tqdm(data_loader["unsupervised"], ncols=80)
     for _, test_batch in enumerate(sbar):
         batch_size = test_batch[0].shape[0]
         for idx in range(batch_size):
             data_input, labels_input = test_batch[0][idx].cpu().numpy(), test_batch[1][idx].cpu().numpy()
+            
+            # Extract subject and task information like supervised methods
+            subj_index = test_batch[2][idx] if len(test_batch) > 2 else f"trial_{len(predictions)}"
+            sort_index = int(test_batch[3][idx]) if len(test_batch) > 3 else 0
+            
             data_input = data_input[..., :3]
+            # compute unsupervised predicted BVP signal
             if method_name == "POS":
                 BVP = POS_WANG(data_input, config.UNSUPERVISED.DATA.FS)
             elif method_name == "CHROM":
@@ -44,6 +59,18 @@ def unsupervised_predict(config, data_loader, method_name):
                 BVP = OMIT(data_input)
             else:
                 raise ValueError("unsupervised method name wrong!")
+            
+            # Store data in the same structure as supervised methods
+            if subj_index not in predictions:
+                predictions[subj_index] = {}
+                labels[subj_index] = {}
+            
+            # Fix ValueError: negative strides by copying arrays and converting to tensors
+            pred_tensor = torch.from_numpy(BVP.copy()).float()
+            label_tensor = torch.from_numpy(labels_input.copy()).float()
+            
+            predictions[subj_index][sort_index] = pred_tensor
+            labels[subj_index][sort_index] = label_tensor
 
             video_frame_size = test_batch[0].shape[1]
             if config.INFERENCE.EVALUATION_WINDOW.USE_SMALLER_WINDOW:
@@ -191,3 +218,22 @@ def unsupervised_predict(config, data_loader, method_name):
                 raise ValueError("Wrong Test Metric Type")
     else:
         raise ValueError("Inference evaluation method name wrong!")
+    # Save per-trial outputs as pickle using supervised method structure  
+    save_root = getattr(config.UNSUPERVISED, 'OUTPUT_SAVE_DIR', None)
+    if save_root:
+        # Create save directory under method-specific folder
+        save_dir = os.path.join(save_root, filename_id, 'saved_outputs')
+        os.makedirs(save_dir, exist_ok=True)
+        save_path = os.path.join(save_dir, f'{method_name}_{config.UNSUPERVISED.DATA.DATASET}_outputs.pickle')
+        
+        save_dict = {
+            'predictions': predictions,
+            'labels': labels,
+            'fs': config.UNSUPERVISED.DATA.FS,
+            'label_type': config.UNSUPERVISED.DATA.PREPROCESS.LABEL_TYPE
+        }
+        with open(save_path, 'wb') as f:
+            pickle.dump(save_dict, f)
+        print(f"Saved per-trial outputs pickle to {save_path}")
+    else:
+        print("No OUTPUT_SAVE_DIR specified, skipping saving outputs.")

@@ -2,22 +2,22 @@ BASE: ['']
 TOOLBOX_MODE: "only_test"      # "train_and_test"  or "only_test"
 TEST:
   METRICS: ['MAE', 'RMSE', 'MAPE', 'Pearson', 'SNR', 'BA']
-  USE_LAST_EPOCH: False                      # to use provided validation dataset to find the best epoch, should be false
+  USE_LAST_EPOCH: False
   DATA:
     FS: 30
     DATASET: PURE
-    DO_PREPROCESS: False                 # if first time, should be true
+    DO_PREPROCESS: True                    # if first time, should be true
     DATA_FORMAT: NDCHW
-    DATA_PATH: "/home/zik/Research/ZJU/rPPG/rppg-work/Phase1/data/PURE"                     # Raw dataset path, need to be updated
+    DATA_PATH: "/home/zik/Research/ZJU/rPPG/rppg-work/Phase1/data/PURE_watermarked"                     # Raw dataset path, need to be updated
     CACHED_PATH: "/home/zik/Research/ZJU/rPPG/rppg-work/Phase1/data/Preprocessed"    # Processed dataset save path, need to be updated
     EXP_DATA_NAME: ""
     BEGIN: 0.0
     END: 1.0
-    PREPROCESS :
-      DATA_TYPE: ['Standardized']
-      LABEL_TYPE: Standardized
+    PREPROCESS:
+      DATA_TYPE: [ 'DiffNormalized','Standardized' ]
+      LABEL_TYPE: DiffNormalized
       DO_CHUNK: True
-      CHUNK_LENGTH: 160
+      CHUNK_LENGTH: 180
       CROP_FACE:
         DO_CROP_FACE: True
         BACKEND: 'HC'    # HC for Haar Cascade, Y5F for YOLO5Face
@@ -28,19 +28,19 @@ TEST:
           DYNAMIC_DETECTION_FREQUENCY : 30
           USE_MEDIAN_FACE_BOX: False    # This should be used ONLY if dynamic detection is used
       RESIZE:
-        H: 128
-        W: 128
+        H: 72
+        W: 72
 DEVICE: cuda:0
 NUM_OF_GPU_TRAIN: 1
 LOG:
   PATH: runs/exp
 MODEL:
-  DROP_RATE: 0.7
-  NAME: RhythmFormer
+  DROP_RATE: 0.2
+  NAME: DeepPhys
 INFERENCE:
   BATCH_SIZE: 1
-  EVALUATION_METHOD: "FFT"        # "FFT" or "peak detection"
+  EVALUATION_METHOD: FFT        # "FFT" or "peak detection"
   EVALUATION_WINDOW:
     USE_SMALLER_WINDOW: False        # Change this if you'd like an evaluation window smaller than the test video length
     WINDOW_SIZE: 10        # In seconds
-  MODEL_PATH:   "./final_model_release/UBFC-rPPG_RhythmFormer.pth"
+  MODEL_PATH:   "./final_model_release/UBFC-rPPG_DeepPhys.pth"
