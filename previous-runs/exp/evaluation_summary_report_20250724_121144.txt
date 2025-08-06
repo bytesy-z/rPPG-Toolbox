@@ -1,0 +1,45 @@
+COMPREHENSIVE rPPG METHOD EVALUATION SUMMARY
+================================================================================
+Evaluation completed at: 2025-07-24 12:11:44
+Total files found: 14
+Files evaluated: 14
+Successful evaluations: 14
+Failed evaluations: 0
+Overall metrics file: /home/zik/Research/ZJU/rPPG/rppg-work/Phase1/rPPG-Toolbox/runs/exp/comprehensive_evaluation_overall_20250724_121144.csv
+Subject metrics file: /home/zik/Research/ZJU/rPPG/rppg-work/Phase1/rPPG-Toolbox/runs/exp/comprehensive_evaluation_subjects_20250724_121144.csv
+Task metrics file: /home/zik/Research/ZJU/rPPG/rppg-work/Phase1/rPPG-Toolbox/runs/exp/comprehensive_evaluation_tasks_20250724_121144.csv
+
+RESULTS SUMMARY TABLE:
+----------------------------------------
+        Method Watermark_Status  MAE_Mean  RMSE_Mean  MAPE_Mean  SNR_Mean  Pearson_Correlation  Num_Valid_Trials
+           POS         ORIGINAL    2.6218    10.1402     5.2561    3.8604               0.9098                59
+           POS      WATERMARKED   14.3455    24.0246    22.9439   -2.0478               0.2737                59
+         CHROM         ORIGINAL    4.5137    14.2530     8.9578    2.7085               0.8274                59
+         CHROM      WATERMARKED   24.3487    31.2864    40.7425   -5.7993              -0.0163                59
+         GREEN         ORIGINAL   11.5226    26.9290    12.1042   -1.8664               0.2083                59
+         GREEN      WATERMARKED   33.1154    40.5806    56.0612   -7.0375               0.0023                59
+      DeepPhys         ORIGINAL    5.7799    19.1997     5.6645    1.8640               0.6454                59
+      DeepPhys      WATERMARKED   20.7511    27.4549    28.4934   -6.6304              -0.0529                59
+         TSCAN         ORIGINAL    3.0240    13.0776     2.6305    2.4988               0.8370                59
+         TSCAN      WATERMARKED   18.4496    25.2572    24.8333   -6.7122               0.1705                59
+ FactorizePhys         ORIGINAL    0.6108     1.7782     0.9118    3.7248               0.9973                59
+ FactorizePhys      WATERMARKED   44.1464    50.3113    74.9471   -7.2352              -0.1356                59
+  RhythmFormer         ORIGINAL    1.3109     7.9395     2.4910    5.7793               0.9450                59
+  RhythmFormer      WATERMARKED   71.1467    76.6160   119.9920   -7.6646              -0.0709                59
+
+EVALUATION ORDER:
+--------------------
+ 1. POS (ORIGINAL) - ORIGINAL_POS_PURE_outputs.pickle
+ 2. POS (WATERMARKED) - WATERMARKED_POS_PURE_outputs.pickle
+ 3. CHROM (ORIGINAL) - ORIGINAL_CHROM_PURE_outputs.pickle
+ 4. CHROM (WATERMARKED) - WATERMARKED_CHROM_PURE_outputs.pickle
+ 5. GREEN (ORIGINAL) - ORIGINAL_GREEN_PURE_outputs.pickle
+ 6. GREEN (WATERMARKED) - WATERMARKED_GREEN_PURE_outputs.pickle
+ 7. DeepPhys (ORIGINAL) - ORIGINAL_UBFC-rPPG_DeepPhys_PURE_outputs.pickle
+ 8. DeepPhys (WATERMARKED) - WATERMARKED_UBFC-rPPG_DeepPhys_PURE_outputs.pickle
+ 9. TSCAN (ORIGINAL) - ORIGINAL_UBFC-rPPG_TSCAN_PURE_outputs.pickle
+10. TSCAN (WATERMARKED) - WATERMARKED_UBFC-rPPG_TSCAN_PURE_outputs.pickle
+11. FactorizePhys (ORIGINAL) - ORIGINAL_UBFC-rPPG_FactorizePhys_FSAM_Res_PURE_outputs.pickle
+12. FactorizePhys (WATERMARKED) - WATERMARKED_FactorizePhys_FSAM_Res_PURE_outputs.pickle
+13. RhythmFormer (ORIGINAL) - ORIGINAL_UBFC-rPPG_RhythmFormer_PURE_outputs.pickle
+14. RhythmFormer (WATERMARKED) - WATERMARKING_UBFC-rPPG_RhythmFormer_PURE_outputs.pickle
