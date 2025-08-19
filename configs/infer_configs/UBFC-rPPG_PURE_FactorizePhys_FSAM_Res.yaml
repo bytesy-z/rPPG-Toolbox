@@ -6,10 +6,10 @@ TEST:
   DATA:
     FS: 30
     DATASET: PURE
-    DO_PREPROCESS: False            # if first time, should be true
+    DO_PREPROCESS: True            # if first time, should be true
     DATA_FORMAT: NCDHW
-    DATA_PATH: "/home/zik/Research/ZJU/rPPG/rppg-work/Phase1/data/PURE"                     # Raw dataset path, need to be updated
-    CACHED_PATH: "/home/zik/Research/ZJU/rPPG/rppg-work/Phase1/data/Preprocessed"    # Processed dataset save path, need to be updated
+    DATA_PATH: "/data/zikrullah/PURE"                     # Raw dataset path, need to be updated
+    CACHED_PATH: "/data/zikrullah/PURE_Preprocessed"    # Processed dataset save path, need to be updated
     EXP_DATA_NAME: ""
     BEGIN: 0.0
     END: 1.0
@@ -30,7 +30,7 @@ TEST:
       RESIZE:
         H: 72
         W: 72
-DEVICE: cuda:0
+DEVICE: cuda:1
 NUM_OF_GPU_TRAIN: 1
 LOG:
   PATH: runs/exp
@@ -48,7 +48,7 @@ MODEL:
     MD_RESIDUAL: True
     MD_INFERENCE: True
 INFERENCE:
-  BATCH_SIZE: 2
+  BATCH_SIZE: 32
   EVALUATION_METHOD: "FFT"        # "FFT" or "peak detection"
   EVALUATION_WINDOW:
     USE_SMALLER_WINDOW: False        # Change this if you'd like an evaluation window smaller than the test video length

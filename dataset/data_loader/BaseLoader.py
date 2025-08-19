@@ -275,6 +275,63 @@ class BaseLoader(Dataset):
 
         return frames_clips, bvps_clips
 
+    def crop_face_resize(self, frames, use_face_detection, backend, use_larger_box, larger_box_coef, use_dynamic_detection, 
+                         detection_freq, use_median_box, width, height):
+        """Crop face and resize frames.
+
+        Args:
+            frames(np.array): Video frames.
+            use_dynamic_detection(bool): If False, all the frames use the first frame's bouding box to crop the faces
+                                         and resizing.
+                                         If True, it performs face detection every "detection_freq" frames.
+            detection_freq(int): The frequency of dynamic face detection e.g., every detection_freq frames.
+            width(int): Target width for resizing.
+            height(int): Target height for resizing.
+            use_larger_box(bool): Whether enlarge the detected bouding box from face detection.
+            use_face_detection(bool):  Whether crop the face.
+            larger_box_coef(float): the coefficient of the larger region(height and weight),
+                                the middle point of the detected region will stay still during the process of enlarging.
+        Returns:
+            resized_frames(list[np.array(float)]): Resized and cropped frames
+        """
+        # Face Cropping
+        if use_dynamic_detection:
+            num_dynamic_det = ceil(frames.shape[0] / detection_freq)
+        else:
+            num_dynamic_det = 1
+        face_region_all = []
+        # Perform face detection by num_dynamic_det" times.
+        for idx in range(num_dynamic_det):
+            if use_face_detection:
+                face_region_all.append(self.face_detection(frames[detection_freq * idx], backend, use_larger_box, larger_box_coef))
+            else:
+                face_region_all.append([0, 0, frames.shape[1], frames.shape[2]])
+        face_region_all = np.asarray(face_region_all, dtype='int')
+        if use_median_box:
+            # Generate a median bounding box based on all detected face regions
+            face_region_median = np.median(face_region_all, axis=0).astype('int')
+        else:
+            face_region_median = None
+
+        # Frame Resizing
+        total_frames, _, _, channels = frames.shape
+        resized_frames = np.zeros((total_frames, height, width, channels))
+        for i in range(0, total_frames):
+            frame = frames[i]
+            if use_dynamic_detection:  # use the (i // detection_freq)-th facial region.
+                reference_index = i // detection_freq
+            else:  # use the first region obtrained from the first frame.
+                reference_index = 0
+            if use_face_detection:
+                if use_median_box and face_region_median is not None:
+                    face_region = face_region_median
+                else:
+                    face_region = face_region_all[reference_index]
+                frame = frame[max(face_region[1], 0):min(face_region[1] + face_region[3], frame.shape[0]),
+                        max(face_region[0], 0):min(face_region[0] + face_region[2], frame.shape[1])]
+            resized_frames[i] = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
+        return resized_frames
+
     def face_detection(self, frame, backend, use_larger_box=False, larger_box_coef=1.0):
         """Face detection on a single frame.
 
@@ -343,66 +400,11 @@ class BaseLoader(Dataset):
             raise ValueError("Unsupported face detection backend!")
 
         if use_larger_box:
-            face_box_coor[0] = max(0, face_box_coor[0] - (larger_box_coef - 1.0) / 2 * face_box_coor[2])
-            face_box_coor[1] = max(0, face_box_coor[1] - (larger_box_coef - 1.0) / 2 * face_box_coor[3])
-            face_box_coor[2] = larger_box_coef * face_box_coor[2]
-            face_box_coor[3] = larger_box_coef * face_box_coor[3]
+            face_box_coor[0] = int(max(0, face_box_coor[0] - (larger_box_coef - 1.0) / 2 * face_box_coor[2]))
+            face_box_coor[1] = int(max(0, face_box_coor[1] - (larger_box_coef - 1.0) / 2 * face_box_coor[3]))
+            face_box_coor[2] = int(larger_box_coef * face_box_coor[2])
+            face_box_coor[3] = int(larger_box_coef * face_box_coor[3])
         return face_box_coor
-
-    def crop_face_resize(self, frames, use_face_detection, backend, use_larger_box, larger_box_coef, use_dynamic_detection, 
-                         detection_freq, use_median_box, width, height):
-        """Crop face and resize frames.
-
-        Args:
-            frames(np.array): Video frames.
-            use_dynamic_detection(bool): If False, all the frames use the first frame's bouding box to crop the faces
-                                         and resizing.
-                                         If True, it performs face detection every "detection_freq" frames.
-            detection_freq(int): The frequency of dynamic face detection e.g., every detection_freq frames.
-            width(int): Target width for resizing.
-            height(int): Target height for resizing.
-            use_larger_box(bool): Whether enlarge the detected bouding box from face detection.
-            use_face_detection(bool):  Whether crop the face.
-            larger_box_coef(float): the coefficient of the larger region(height and weight),
-                                the middle point of the detected region will stay still during the process of enlarging.
-        Returns:
-            resized_frames(list[np.array(float)]): Resized and cropped frames
-        """
-        # Face Cropping
-        if use_dynamic_detection:
-            num_dynamic_det = ceil(frames.shape[0] / detection_freq)
-        else:
-            num_dynamic_det = 1
-        face_region_all = []
-        # Perform face detection by num_dynamic_det" times.
-        for idx in range(num_dynamic_det):
-            if use_face_detection:
-                face_region_all.append(self.face_detection(frames[detection_freq * idx], backend, use_larger_box, larger_box_coef))
-            else:
-                face_region_all.append([0, 0, frames.shape[1], frames.shape[2]])
-        face_region_all = np.asarray(face_region_all, dtype='int')
-        if use_median_box:
-            # Generate a median bounding box based on all detected face regions
-            face_region_median = np.median(face_region_all, axis=0).astype('int')
-
-        # Frame Resizing
-        total_frames, _, _, channels = frames.shape
-        resized_frames = np.zeros((total_frames, height, width, channels))
-        for i in range(0, total_frames):
-            frame = frames[i]
-            if use_dynamic_detection:  # use the (i // detection_freq)-th facial region.
-                reference_index = i // detection_freq
-            else:  # use the first region obtrained from the first frame.
-                reference_index = 0
-            if use_face_detection:
-                if use_median_box:
-                    face_region = face_region_median
-                else:
-                    face_region = face_region_all[reference_index]
-                frame = frame[max(face_region[1], 0):min(face_region[1] + face_region[3], frame.shape[0]),
-                        max(face_region[0], 0):min(face_region[0] + face_region[2], frame.shape[1])]
-            resized_frames[i] = cv2.resize(frame, (width, height), interpolation=cv2.INTER_AREA)
-        return resized_frames
 
     def chunk(self, frames, bvps, chunk_length):
         """Chunk the data into small chunks.
@@ -473,17 +475,32 @@ class BaseLoader(Dataset):
             count += 1
         return input_path_name_list, label_path_name_list
 
-    def multi_process_manager(self, data_dirs, config_preprocess, multi_process_quota=1):
+    def multi_process_manager(self, data_dirs, config_preprocess, multi_process_quota=None):
         """Allocate dataset preprocessing across multiple processes.
 
         Args:
             data_dirs(List[str]): a list of video_files.
             config_preprocess(Dict): a dictionary of preprocessing configurations
-            multi_process_quota(Int): max number of sub-processes to spawn for multiprocessing
+            multi_process_quota(Int|None): max number of sub-processes to spawn for multiprocessing. If None or <=0,
+                will auto-detect based on CPU count.
         Returns:
             file_list_dict(Dict): Dictionary containing information regarding processed data ( path names)
         """
-        print('Preprocessing dataset...')
+        # Determine number of workers
+        if multi_process_quota is None:
+            workers = getattr(config_preprocess, 'NUM_WORKERS', 1)
+        else:
+            workers = multi_process_quota
+        try:
+            if workers is None or workers <= 0:
+                cpu_cnt = max(1, mp.cpu_count() - 1)
+                workers = cpu_cnt
+        except Exception:
+            workers = 1
+        # Don't spawn more processes than there are items
+        workers = max(1, min(workers, len(data_dirs)))
+        print(f'Preprocessing dataset with {workers} worker(s)...')
+
         file_num = len(data_dirs)
         choose_range = range(0, file_num)
         pbar = tqdm(list(choose_range))
@@ -498,7 +515,7 @@ class BaseLoader(Dataset):
         for i in choose_range:
             process_flag = True
             while process_flag:  # ensure that every i creates a process
-                if running_num < multi_process_quota:  # in case of too many processes
+                if running_num < workers:  # in case of too many processes
                     # send data to be preprocessing task
                     p = mp.Process(target=self.preprocess_dataset_subprocess, 
                                 args=(data_dirs,config_preprocess, i, file_list_dict))

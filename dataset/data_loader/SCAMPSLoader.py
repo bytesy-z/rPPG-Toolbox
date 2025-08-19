@@ -14,6 +14,10 @@ from multiprocessing import Pool, Process, Value, Array, Manager
 
 import cv2
 import mat73
+# Force headless backend to avoid Tk/_tkinter dependency during import
+os.environ.setdefault("MPLBACKEND", "Agg")
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import scipy.io
