@@ -38,7 +38,9 @@ class PhysMambaTrainer(BaseTrainer):
 
         self.model = PhysMamba().to(self.device)  # [3, T, 128,128]
         if self.num_of_gpu > 0:
-            self.model = torch.nn.DataParallel(self.model, device_ids=list(range(config.NUM_OF_GPU_TRAIN)))
+            main_device_id = self.device.index if self.device.type == "cuda" else 0
+            device_ids = list(range(main_device_id, main_device_id + config.NUM_OF_GPU_TRAIN))
+            self.model = torch.nn.DataParallel(self.model, device_ids=device_ids)
 
         if config.TOOLBOX_MODE == "train_and_test":
             self.num_train_batches = len(data_loader["train"])

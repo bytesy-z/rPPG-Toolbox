@@ -78,7 +78,9 @@ class TestFactorizePhysBig(object):
                 self.num_trials = 1
 
         if torch.cuda.is_available():
-            self.device = torch.device(0)
+            # Use model_config["device"] if available, else default to cuda:0
+            device_id = model_config.get("device", 0)
+            self.device = torch.device(f"cuda:{device_id}")
         else:
             self.device = torch.device("cpu")
 
@@ -94,8 +96,11 @@ class TestFactorizePhysBig(object):
         md_config["MD_RESIDUAL"] = model_config["MD_RESIDUAL"]
 
         if self.visualize:
+            # Use correct device_ids for DataParallel
+            device_id = self.device.index if self.device.type == "cuda" else None
+            device_ids = [device_id] if device_id is not None else None
             self.net = nn.DataParallel(FactorizePhys(frames=self.frames, md_config=md_config,
-                                device=self.device, in_channels=self.in_channels, debug=self.debug), device_ids=[0]).to(self.device)
+                                device=self.device, in_channels=self.in_channels, debug=self.debug), device_ids=device_ids).to(self.device)
             self.net.load_state_dict(torch.load(str(self.ckpt_path), map_location=self.device))
         else:
             self.net = FactorizePhys(frames=self.frames, md_config=md_config,

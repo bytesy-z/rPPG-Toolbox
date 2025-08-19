@@ -29,7 +29,9 @@ class RhythmFormerTrainer(BaseTrainer):
             self.diff_flag = 1
         if config.TOOLBOX_MODE == "train_and_test":
             self.model = RhythmFormer().to(self.device)
-            self.model = torch.nn.DataParallel(self.model, device_ids=list(range(config.NUM_OF_GPU_TRAIN)))
+            main_device_id = self.device.index if self.device.type == "cuda" else 0
+            device_ids = list(range(main_device_id, main_device_id + config.NUM_OF_GPU_TRAIN))
+            self.model = torch.nn.DataParallel(self.model, device_ids=device_ids)
             self.num_train_batches = len(data_loader["train"])
             self.criterion = RhythmFormer_Loss()
             self.optimizer = optim.AdamW(
@@ -39,7 +41,9 @@ class RhythmFormerTrainer(BaseTrainer):
                 self.optimizer, max_lr=config.TRAIN.LR, epochs=config.TRAIN.EPOCHS, steps_per_epoch=self.num_train_batches)
         elif config.TOOLBOX_MODE == "only_test":
             self.model = RhythmFormer().to(self.device)
-            self.model = torch.nn.DataParallel(self.model, device_ids=list(range(config.NUM_OF_GPU_TRAIN)))
+            main_device_id = self.device.index if self.device.type == "cuda" else 0
+            device_ids = list(range(main_device_id, main_device_id + config.NUM_OF_GPU_TRAIN))
+            self.model = torch.nn.DataParallel(self.model, device_ids=device_ids)
         else:
             raise ValueError("EfficientPhys trainer initialized in incorrect toolbox mode!")
 

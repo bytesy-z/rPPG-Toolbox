@@ -69,8 +69,10 @@ class FactorizePhysTrainer(BaseTrainer):
             print("Unexpected model type specified. Should be standard or big, but specified:", model_type)
             exit()
 
-        if torch.cuda.device_count() > 0 and self.num_of_gpu > 0:  # distribute model across GPUs
-            self.model = torch.nn.DataParallel(self.model, device_ids=[self.device])  # data parallel model
+        if torch.cuda.device_count() > 0 and self.num_of_gpu > 0:
+            main_device_id = self.device.index if self.device.type == "cuda" else 0
+            device_ids = list(range(main_device_id, main_device_id + self.num_of_gpu))
+            self.model = torch.nn.DataParallel(self.model, device_ids=device_ids)
         else:
             self.model = torch.nn.DataParallel(self.model).to(self.device)
 

@@ -103,20 +103,23 @@ class BigSmallTrainer(BaseTrainer):
 
         # Set up GPU/CPU compute device
         if torch.cuda.is_available() and config.NUM_OF_GPU_TRAIN > 0:
-            self.device = torch.device(config.DEVICE) # set device to primary GPU
-            self.num_of_gpu = config.NUM_OF_GPU_TRAIN # set number of used GPUs
+            # config.DEVICE should be like "cuda:3" or "cuda:0"
+            self.device = torch.device(config.DEVICE)
+            self.num_of_gpu = config.NUM_OF_GPU_TRAIN
         else:
-            self.device = "cpu" # if no GPUs set device is CPU
-            self.num_of_gpu = 0 # no GPUs used
+            self.device = torch.device("cpu")
+            self.num_of_gpu = 0
 
         # Defining model
         self.using_TSM = True
         self.model = self.define_model(config) # define the model
 
-        if torch.cuda.device_count() > 1 and config.NUM_OF_GPU_TRAIN > 1: # distribute model across GPUs
-            self.model = torch.nn.DataParallel(self.model, device_ids=list(range(config.NUM_OF_GPU_TRAIN))) # data parallel model
-
-        self.model = self.model.to(self.device) # send model to primary GPU
+        if torch.cuda.device_count() > 1 and config.NUM_OF_GPU_TRAIN > 1:
+            # Use device_ids based on config.DEVICE
+            main_device_id = self.device.index if self.device.type == "cuda" else 0
+            device_ids = list(range(main_device_id, main_device_id + config.NUM_OF_GPU_TRAIN))
+            self.model = torch.nn.DataParallel(self.model, device_ids=device_ids)
+        self.model = self.model.to(self.device)
 
         # Training parameters
         self.batch_size = config.TRAIN.BATCH_SIZE
