@@ -2,13 +2,13 @@ BASE: ['']
 TOOLBOX_MODE: "only_test"  # "train_and_test"  or "only_test"
 TEST:
   METRICS: ['MAE', 'RMSE', 'MAPE', 'Pearson', 'SNR', 'BA']
-  USE_LAST_EPOCH: True
+  USE_LAST_EPOCH: False
   DATA:
     FS: 30
     DATASET: UBFC-rPPG
-    DO_PREPROCESS: False                  # if first time, should be true
+    DO_PREPROCESS: True                  # if first time, should be true
     DATA_FORMAT: NCDHW
-    DATA_PATH: "/data/zikrullah/UBFC_Videos"                     # Raw dataset path, need to be updated
+    DATA_PATH: "/data/zikrullah/UBFC-rPPG"                     # Raw dataset path, need to be updated
     CACHED_PATH: "/data/zikrullah/UBFC_Original_Preprocessed"        # Processed dataset save path, need to be updatedEXP_DATA_NAME: ""
     EXP_DATA_NAME: ""
     BEGIN: 0.0
@@ -30,7 +30,7 @@ TEST:
       RESIZE:
         H: 72
         W: 72
-DEVICE: cuda:0
+DEVICE: cuda:3
 NUM_OF_GPU_TRAIN: 1
 LOG:
   PATH: runs/exp
