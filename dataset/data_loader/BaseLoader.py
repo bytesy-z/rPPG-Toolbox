@@ -494,7 +494,7 @@ class BaseLoader(Dataset):
         try:
             if workers is None or workers <= 0:
                 cpu_cnt = max(1, mp.cpu_count() - 1)
-                workers = cpu_cnt
+                workers = 1
         except Exception:
             workers = 1
         # Don't spawn more processes than there are items
