@@ -6,11 +6,11 @@ TEST:
   DATA:
     FS: 30
     DATASET: UBFC-rPPG
-    DO_PREPROCESS: False                 # if first time, should be true
+    DO_PREPROCESS: True                 # if first time, should be true
     DATA_FORMAT: NDCHW
-    DATA_PATH: "/data/zikrullah/UBFC-rPPG"                     # Raw dataset path, need to be updated
-    CACHED_PATH: "/data/zikrullah/UBFC_Original_Preprocessed"        # Processed dataset save path, need to be updatedEXP_DATA_NAME: ""
-    FILE_LIST_PATH: "/data/zikrullah/UBFC_Original_Preprocessed"    # Path to store file lists, needs to be updated
+    DATA_PATH: "/data/zikrullah/UBFC_Videoseal_0.8"                     # Raw dataset path, need to be updated
+    CACHED_PATH: "/data/zikrullah/UBFC_Videoseal_0.8_Preprocessed"        # Processed dataset save path, need to be updatedEXP_DATA_NAME: ""
+    FILE_LIST_PATH: "/data/zikrullah/UBFC_Videoseal_0.8_Preprocessed/DataFileLists"    # Path to store file lists, need to be updated
     EXP_DATA_NAME: ""
     BEGIN: 0.0
     END: 1.0
